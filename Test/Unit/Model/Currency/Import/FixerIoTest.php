@@ -14,10 +14,12 @@ use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\DataObject;
 use Magento\Framework\HTTP\ZendClient;
 use Magento\Framework\HTTP\ZendClientFactory;
-use PHPUnit\Framework\MockObject\MockObject;
-use PHPUnit\Framework\TestCase;
+use PHPUnit_Framework_MockObject_MockObject as MockObject;
 
-class FixerIoTest extends TestCase
+/**
+ * FixerIo Test
+ */
+class FixerIoTest extends \PHPUnit\Framework\TestCase
 {
     /**
      * @var FixerIo
@@ -42,7 +44,7 @@ class FixerIoTest extends TestCase
     /**
      * @inheritdoc
      */
-    protected function setUp(): void
+    protected function setUp()
     {
         $this->currencyFactory = $this->getMockBuilder(CurrencyFactory::class)
             ->disableOriginalConstructor()
@@ -55,7 +57,7 @@ class FixerIoTest extends TestCase
         $this->scopeConfig = $this->getMockBuilder(ScopeConfigInterface::class)
             ->disableOriginalConstructor()
             ->setMethods([])
-            ->getMockForAbstractClass();
+            ->getMock();
 
         $this->model = new FixerIo($this->currencyFactory, $this->scopeConfig, $this->httpClientFactory);
     }
@@ -72,7 +74,7 @@ class FixerIoTest extends TestCase
         $responseBody = '{"success":"true","base":"USD","date":"2015-10-07","rates":{"EUR":0.9022}}';
         $expectedCurrencyRateList = ['USD' => ['EUR' => 0.9022, 'UAH' => null]];
         $message = "We can't retrieve a rate from "
-            . "http://data.fixer.io for UAH.";
+            . "http://data.fixer.io/api/latest?access_key=api_key&base=USD&symbols=EUR,UAH for UAH.";
 
         $this->scopeConfig->method('getValue')
             ->withConsecutive(
@@ -117,7 +119,7 @@ class FixerIoTest extends TestCase
 
         $messages = $this->model->getMessages();
         self::assertNotEmpty($messages);
-        self::assertIsArray($messages);
+        self::assertTrue(is_array($messages));
         self::assertEquals($message, (string)$messages[0]);
     }
 }

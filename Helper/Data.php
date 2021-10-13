@@ -6,24 +6,13 @@
 
 namespace Magento\Directory\Helper;
 
-use Magento\Directory\Model\AllowedCountries;
-use Magento\Directory\Model\Currency;
-use Magento\Directory\Model\CurrencyFactory;
-use Magento\Directory\Model\ResourceModel\Country\Collection;
-use Magento\Directory\Model\ResourceModel\Region\CollectionFactory;
-use Magento\Framework\App\Cache\Type\Config;
-use Magento\Framework\App\Config\ScopeConfigInterface;
-use Magento\Framework\App\Helper\Context;
-use Magento\Framework\Json\Helper\Data as JsonData;
 use Magento\Store\Model\ScopeInterface;
-use Magento\Store\Model\StoreManagerInterface;
 
 /**
  * Directory data helper
  *
  * @api
  * @since 100.0.2
- * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class Data extends \Magento\Framework\App\Helper\AbstractHelper
 {
@@ -64,7 +53,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * Country collection
      *
-     * @var Collection
+     * @var \Magento\Directory\Model\ResourceModel\Country\Collection
      */
     protected $_countryCollection;
 
@@ -97,49 +86,47 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     protected $_optZipCountries = null;
 
     /**
-     * @var Config
+     * @var \Magento\Framework\App\Cache\Type\Config
      */
     protected $_configCacheType;
 
     /**
-     * @var CollectionFactory
+     * @var \Magento\Directory\Model\ResourceModel\Region\CollectionFactory
      */
     protected $_regCollectionFactory;
 
     /**
-     * @var JsonData
+     * @var \Magento\Framework\Json\Helper\Data
      */
     protected $jsonHelper;
 
     /**
-     * @var StoreManagerInterface
+     * @var \Magento\Store\Model\StoreManagerInterface
      */
     protected $_storeManager;
 
     /**
-     * @var CurrencyFactory
+     * @var \Magento\Directory\Model\CurrencyFactory
      */
     protected $_currencyFactory;
 
     /**
-     * Data constructor.
-     *
-     * @param Context $context
-     * @param Config $configCacheType
-     * @param Collection $countryCollection
-     * @param CollectionFactory $regCollectionFactory
-     * @param JsonData $jsonHelper
-     * @param StoreManagerInterface $storeManager
-     * @param CurrencyFactory $currencyFactory
+     * @param \Magento\Framework\App\Helper\Context $context
+     * @param \Magento\Framework\App\Cache\Type\Config $configCacheType
+     * @param \Magento\Directory\Model\ResourceModel\Country\Collection $countryCollection
+     * @param \Magento\Directory\Model\ResourceModel\Region\CollectionFactory $regCollectionFactory,
+     * @param \Magento\Framework\Json\Helper\Data $jsonHelper
+     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
+     * @param \Magento\Directory\Model\CurrencyFactory $currencyFactory
      */
     public function __construct(
-        Context $context,
-        Config $configCacheType,
-        Collection $countryCollection,
-        CollectionFactory $regCollectionFactory,
-        JsonData $jsonHelper,
-        StoreManagerInterface $storeManager,
-        CurrencyFactory $currencyFactory
+        \Magento\Framework\App\Helper\Context $context,
+        \Magento\Framework\App\Cache\Type\Config $configCacheType,
+        \Magento\Directory\Model\ResourceModel\Country\Collection $countryCollection,
+        \Magento\Directory\Model\ResourceModel\Region\CollectionFactory $regCollectionFactory,
+        \Magento\Framework\Json\Helper\Data $jsonHelper,
+        \Magento\Store\Model\StoreManagerInterface $storeManager,
+        \Magento\Directory\Model\CurrencyFactory $currencyFactory
     ) {
         parent::__construct($context);
         $this->_configCacheType = $configCacheType;
@@ -159,7 +146,6 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     {
         if (!$this->_regionCollection) {
             $this->_regionCollection = $this->_regCollectionFactory->create();
-            // phpstan:ignore
             $this->_regionCollection->addCountryFilter($this->getAddress()->getCountryId())->load();
         }
         return $this->_regionCollection;
@@ -169,7 +155,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      * Retrieve country collection
      *
      * @param null|int|string|\Magento\Store\Model\Store $store
-     * @return Collection
+     * @return \Magento\Directory\Model\ResourceModel\Country\Collection
      */
     public function getCountryCollection($store = null)
     {
@@ -183,15 +169,12 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      * Retrieve regions data json
      *
      * @return string
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     public function getRegionJson()
     {
         \Magento\Framework\Profiler::start('TEST: ' . __METHOD__, ['group' => 'TEST', 'method' => __METHOD__]);
         if (!$this->_regionJson) {
-            $scope = $this->getCurrentScope();
-            $scopeKey = $scope['value'] ? '_' . implode('_', $scope) : null;
-            $cacheKey = 'DIRECTORY_REGIONS_JSON_STORE' . $scopeKey;
+            $cacheKey = 'DIRECTORY_REGIONS_JSON_STORE' . $this->_storeManager->getStore()->getId();
             $json = $this->_configCacheType->load($cacheKey);
             if (empty($json)) {
                 $regions = $this->getRegionData();
@@ -214,10 +197,8 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      * @param float $amount
      * @param string $from
      * @param string $to
-     *
      * @return float
      * @SuppressWarnings(PHPMD.ShortVariable)
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     public function currencyConvert($amount, $from, $to = null)
     {
@@ -270,7 +251,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      * Returns the list of countries, for which region is required
      *
      * @param boolean $asJson
-     * @return array|string
+     * @return array
      */
     public function getCountriesWithStatesRequired($asJson = false)
     {
@@ -294,7 +275,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function isShowNonRequiredState()
     {
-        return $this->scopeConfig->isSetFlag(
+        return (bool)$this->scopeConfig->getValue(
             self::XML_PATH_DISPLAY_ALL_STATES,
             ScopeInterface::SCOPE_STORE
         );
@@ -322,10 +303,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function getBaseCurrencyCode()
     {
-        return $this->scopeConfig->getValue(
-            Currency::XML_PATH_CURRENCY_BASE,
-            'default'
-        );
+        return $this->scopeConfig->getValue(\Magento\Directory\Model\Currency::XML_PATH_CURRENCY_BASE, 'default');
     }
 
     /**
@@ -350,13 +328,10 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function getRegionData()
     {
-        $scope = $this->getCurrentScope();
-        $allowedCountries = $this->scopeConfig->getValue(
-            AllowedCountries::ALLOWED_COUNTRIES_PATH,
-            $scope['type'],
-            $scope['value']
-        );
-        $countryIds = explode(',', $allowedCountries);
+        $countryIds = [];
+        foreach ($this->getCountryCollection() as $country) {
+            $countryIds[] = $country->getCountryId();
+        }
         $collection = $this->_regCollectionFactory->create();
         $collection->addCountryFilter($countryIds)->load();
         $regions = [
@@ -400,32 +375,5 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     public function getWeightUnit()
     {
         return $this->scopeConfig->getValue(self::XML_PATH_WEIGHT_UNIT, ScopeInterface::SCOPE_STORE);
-    }
-
-    /**
-     * Get current scope from request
-     *
-     * @return array
-     */
-    private function getCurrentScope(): array
-    {
-        $scope = [
-            'type' => ScopeConfigInterface::SCOPE_TYPE_DEFAULT,
-            'value' => null,
-        ];
-        $request = $this->_getRequest();
-        if ($request->getParam(ScopeInterface::SCOPE_WEBSITE)) {
-            $scope = [
-                'type' => ScopeInterface::SCOPE_WEBSITE,
-                'value' => $request->getParam(ScopeInterface::SCOPE_WEBSITE),
-            ];
-        } elseif ($request->getParam(ScopeInterface::SCOPE_STORE)) {
-            $scope = [
-                'type' => ScopeInterface::SCOPE_STORE,
-                'value' => $request->getParam(ScopeInterface::SCOPE_STORE),
-            ];
-        }
-
-        return $scope;
     }
 }

@@ -3,13 +3,9 @@
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
-declare(strict_types=1);
-
 namespace Magento\Directory\Block;
 
 /**
- * Directory data block
- *
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class Data extends \Magento\Framework\View\Element\Template
@@ -71,18 +67,14 @@ class Data extends \Magento\Framework\View\Element\Template
     }
 
     /**
-     * Returns load url for regions
-     *
      * @return string
      */
     public function getLoadrRegionUrl()
     {
-        return $this->getUrl('directory/json/countryRegion');
+        return $this->getUrl('directory/json/childRegion');
     }
 
     /**
-     * Returns country collection instance
-     *
      * @return \Magento\Directory\Model\ResourceModel\Country\Collection
      */
     public function getCountryCollection()
@@ -111,8 +103,6 @@ class Data extends \Magento\Framework\View\Element\Template
     }
 
     /**
-     * Returns country html select
-     *
      * @param null|string $defValue
      * @param string $name
      * @param string $id
@@ -142,7 +132,7 @@ class Data extends \Magento\Framework\View\Element\Template
         )->setId(
             $id
         )->setTitle(
-            $this->escapeHtmlAttr(__($title))
+            __($title)
         )->setValue(
             $defValue
         )->setOptions(
@@ -156,8 +146,6 @@ class Data extends \Magento\Framework\View\Element\Template
     }
 
     /**
-     * Returns region collection
-     *
      * @return \Magento\Directory\Model\ResourceModel\Region\Collection
      */
     public function getRegionCollection()
@@ -172,36 +160,11 @@ class Data extends \Magento\Framework\View\Element\Template
     }
 
     /**
-     * Returns region html select
-     *
      * @return string
-     * @deprecated 100.3.3
-     * @see getRegionSelect() method for more configurations
      */
     public function getRegionHtmlSelect()
     {
-        return $this->getRegionSelect();
-    }
-
-    /**
-     * Returns region html select
-     *
-     * @param null|int $value
-     * @param string $name
-     * @param string $id
-     * @param string $title
-     * @return string
-     */
-    public function getRegionSelect(
-        ?int $value = null,
-        string $name = 'region',
-        string $id = 'state',
-        string $title = 'State/Province'
-    ): string {
         \Magento\Framework\Profiler::start('TEST: ' . __METHOD__, ['group' => 'TEST', 'method' => __METHOD__]);
-        if ($value === null) {
-            $value = (int)$this->getRegionId();
-        }
         $cacheKey = 'DIRECTORY_REGION_SELECT_STORE' . $this->_storeManager->getStore()->getId();
         $cache = $this->_configCacheType->load($cacheKey);
         if ($cache) {
@@ -213,15 +176,15 @@ class Data extends \Magento\Framework\View\Element\Template
         $html = $this->getLayout()->createBlock(
             \Magento\Framework\View\Element\Html\Select::class
         )->setName(
-            $name
+            'region'
         )->setTitle(
-            __($title)
+            __('State/Province')
         )->setId(
-            $id
+            'state'
         )->setClass(
             'required-entry validate-state'
         )->setValue(
-            $value
+            intval($this->getRegionId())
         )->setOptions(
             $options
         )->getHtml();
@@ -230,8 +193,6 @@ class Data extends \Magento\Framework\View\Element\Template
     }
 
     /**
-     * Returns country id
-     *
      * @return string
      */
     public function getCountryId()
@@ -244,8 +205,6 @@ class Data extends \Magento\Framework\View\Element\Template
     }
 
     /**
-     * Returns regions js
-     *
      * @return string
      */
     public function getRegionsJs()
